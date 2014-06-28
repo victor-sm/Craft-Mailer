@@ -3,14 +3,14 @@ Craft-Mailer
 
 Send Emails from the CP to custom recipients, specific users or whole usergroups. 
 
+**Note:** This plugin is currently in public beta.
+
 **Supports:**
 
 - Sending mails in batches.
 - Using Twig inside the mails body.
 - File-Attachments
 
-
-**Note:** This plugin is currently in public beta.
 
 ##Overview:
 
@@ -28,7 +28,7 @@ You can now change the settings if you need to. Also make sure Crafts mail setti
 
 You can make use of the plugins services in your own plugins:
 
-**newMailer():**
+###newMailer():
 
 Starts a MailerTask based on the passed MailerModel.
 
@@ -38,7 +38,7 @@ craft()->mailer_main->newMailer($mailer);
 
 The first parameter is the MailerModel.
 
-**newMailerFromUserGroup():**
+###newMailerFromUserGroup():
 
 Starts a MailerTask to specific usergroups, based on passed MailerModel
 
@@ -48,7 +48,14 @@ craft()->mailer_main->newMailerFromUserGroup($usergroup_ids, $mailer, $excludeUs
 
 The first parameter is an array of all usergroup ids to whom the mail should be send. The second is the MailerModel. The third parameter is optional and allows you to exclude certain users from the mailer.
 
-**newMailerFromUsers():**
+**Note**: If you also want to include admins, add `admin` to the `$usergroup_ids` array:
+
+```php
+$usergroup_ids = array('admin', 1, 4);
+```
+
+
+###newMailerFromUsers():
 
 Starts a MailerTask to specific users, based on passed MailerModel
 
@@ -58,7 +65,7 @@ craft()->mailer_main->newMailerFromUsers($user_ids, $mailer);
 
 The first parameter is an array of all user-ids to whom the mail should be send. The second is the MailerModel.
 
-**Mailer_Model:**
+###Mailer_Model:
 
 The MailerModel specifies the content of the Email and to whom the Email should be send:
 
