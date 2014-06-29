@@ -9,15 +9,14 @@ Send Emails from the CP to custom recipients, specific users or whole usergroups
 
 - Sending mails in batches.
 - Using Twig inside the mails body.
-- File-Attachments
+- File-attachments
 
 
 ##Install:
 
-1. Move the `mailer` directory into the craft/plugins/ directory.
+1. Move the `mailer` directory into the `craft/plugins/` directory.
 2. Go to `Settings -> Plugins` and enable 'Mailer'.
- 
-You can now change the settings if you need to. Also make sure Crafts mail settings are correct.
+3. Adjust the settings if you need to, and make sure Crafts Email settings are correct.
 
 
 ##Overview:
@@ -32,69 +31,119 @@ You can now change the settings if you need to. Also make sure Crafts mail setti
 
 You can make use of the plugins services in your own plugins:
 
+
+###Example:
+
+```php
+//Email
+$email = new EmailModel;
+
+$email->sender_name = 'My name';
+$email->sender_mail = 'my@mail.com';
+$email->subject     = 'Email subject';
+$email->htmlBody    = 'The message';
+
+
+//Create recipients array
+$custom_recipients = array(
+	array(
+		'to' => 'some1@email.com',
+		'cc' => 'some2@email.com'
+	),
+	array(
+		'to' => 'some3@email.com',
+		'cc' => 'some4@email.com'
+	)
+);
+
+
+//Save to model
+$recipients = new Mailer_RecipientsModel();
+$recipients->recipients = $custom_recipients;
+
+
+//Create mailer
+$this->newMailer($recipients, $email);
+```
+
 ###newMailer():
 
-Starts a MailerTask based on the passed MailerModel.
+Starts a MailerTask based on the passed Mailer_RecipientsModel and EmailModel:
 
 ```php
-craft()->mailer_main->newMailer($mailer);
+craft()->mailer_main->newMailer($recipients, $email);
 ```
 
-The first parameter is the MailerModel.
+**Important:** The EmailModel's `to`, `cc`, `bcc`-attributes will be overwritten (and ignored) by the MailerTask.  Still the `to`-attribute should be set to something, otherwise if you call the Models `validation()`, it will fail.
 
-###newMailerFromUserGroup():
+###getUserGroupRecipients():
 
-Starts a MailerTask to specific usergroups, based on passed MailerModel
+Creates a recipients-array from UserGroup-Ids
 
 ```php
-craft()->mailer_main->newMailerFromUserGroup($usergroup_ids, $mailer, $excludeUserIds);
+craft()->mailer_main->getUserGroupRecipients($usergroup_ids, $exlude_user_ids=array());
 ```
 
-The first parameter is an array of all usergroup ids to whom the mail should be send. The second is the MailerModel. The third parameter is optional and allows you to exclude certain users from the mailer.
+Optional: You can pass a second parameter with an array of user-ids to exclude.
 
-**Note**: If you also want to include admins, add `admin` to the `$usergroup_ids` array:
+**Example:**
 
 ```php
-$usergroup_ids = array('admin', 1, 4);
+//Get Recipients
+$usergroup_recipients = $this->getUserGroupRecipients( array(1, 5) );
+
+//Save to model
+$recipients = new Mailer_RecipientsModel();
+$recipients->recipients = $usergroup_recipients;
+
+//Create mailer
+$this->newMailer($recipients, $email);
 ```
 
+This example will send `$email` to all users in the usergroups with the ids: 1, 5
 
-###newMailerFromUsers():
+###getUserRecipients():
 
-Starts a MailerTask to specific users, based on passed MailerModel
+Creates a recipients-array from User-Ids
 
 ```php
-craft()->mailer_main->newMailerFromUsers($user_ids, $mailer);
+craft()->mailer_main->getUserRecipients($user_ids);
 ```
 
-The first parameter is an array of all user-ids to whom the mail should be send. The second is the MailerModel.
-
-###Mailer_Model:
-
-The MailerModel specifies the content of the Email and to whom the Email should be send:
+**Example:**
 
 ```php
-$mailer = new Mailer_MailerModel();
+//Get Recipients
+$user_recipients = $this->getUserRecipients( array(1, 5, 20, 6, 7, 10) );
 
-$mailer->subject      = 'Mail Subject';
-$mailer->sender_name  = 'From Name';
-$mailer->sender_mail  = 'your_from@mail.com';
-$mailer->htmlBody     = 'Email body';
+//Save to model
+$recipients = new Mailer_RecipientsModel();
+$recipients->recipients = $user_recipients;
+
+//Create mailer
+$this->newMailer($recipients, $email);
 ```
 
-`newMailerFromUsers()` and `newMailerFromUserGroup()` set the recipient attribute on their own.
-However if you want to use `newMailer()` you have to set it yourself:
+This example will send `$email` to all users with the ids: 1, 5, 20, 6, 7, 10
+
+###Mailer_RecipientsModel:
+
+The Mailer_RecipientsModel specifies to whom the Email should be send:
 
 ```php
-$mailer->recipients = array(
+$recipients = new Mailer_RecipientsModel();
+
+$recipients->recipients = array(
 	array('to' => 'test1@example.com', 'bcc' => 'test2@example.com', 'cc' => 'test3@example.com'), //Recipients of the 1. mail
 	array('to' => 'test4@example.com, test5@example.com'), //Recipients of the 2. mail
 	array('to' => 'test6@example.com') //and so on...
 );
 ```
 
-Optionally you can add a file-attachment by adding the attachment attribute, an example:
+The benefit of using a model is that you can run a validation before starting the MailerTask:
 
 ```php
-$mailer->attachment = \CUploadedFile::getInstanceByName('attachment');
+if ( $recipients->validate() ) {
+	//Everything is fine
+}
 ```
