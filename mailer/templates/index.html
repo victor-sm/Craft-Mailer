@@ -1,0 +1,295 @@
+{% includeCssResource "lib/redactor/redactor.css" %}
+{% includeJsResource "lib/redactor/redactor.js" %}
+
+{% extends "_layouts/cp" %}
+{% import '_includes/forms' as forms %}
+
+{% set title = craft.mailer.name %}
+
+{% macro errorList(errors, hr) %}
+    {% if errors %}
+        <ul class="errors">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+		{% if hr %}
+			<hr />
+		{% endif %}
+    {% endif %}
+{% endmacro %}
+{% from _self import errorList %}
+
+
+
+{% block main %}
+    <form id="mailerform" method="post" action="" class="grid" accept-charset="UTF-8" data-saveshortcut="1">
+		<input type="hidden" name="action" value="mailer/form/send">
+
+		<div class="item first" data-position="left">
+			<div class="pane">
+				<nav id="tabs" class="tabs">
+					<ul>
+						<li><a tabindex="0" id="tab-message" class="tab sel" href="#message">{{ 'Message'|t }}</a></li>
+						<li><a tabindex="0" id="tab-recipients" class="tab" href="#recipients">{{ 'Recipients'|t }}</a></li>
+					</ul>
+				</nav>
+				
+				<div id="message" class="">				
+					<!-- Subject -->
+					{% if formData is defined %}{% set form_value = formData.subject %}{% else %}{% set form_value = '' %}{% endif %}
+					{{  forms.textField({
+							label: "Subject"|t,
+							id: 'mailer_subject',
+							name: 'mailer_subject',
+							required: true,
+							value: form_value
+						}) 
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('subject')) }}{% endif %}
+					
+					
+					<!-- Body -->
+					{% if formData is defined %}{% set form_value = formData.htmlBody %}{% else %}{% set form_value = '' %}{% endif %}
+					{{  forms.textareaField({
+							label: "Message"|t,
+							id: 'mailer_htmlBody',
+							name: 'mailer_htmlBody',
+							required: true,
+							rows: 10,
+							value: form_value
+						}) 
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('htmlBody')) }}{% endif %}
+
+					<br />
+					<input id="variable_btn" class="fieldtoggle btn small" value="{{ 'List of Variables'|t }}" type="button">
+
+					<div id="variable_list">
+						<br />
+						<p>{{ "These variables are available in your message, if the recipients are registered users:"|t }}</p>
+
+						<table class="data fullwidth">
+							<tbody>
+								<tr>
+									<th scope="row">{{ "First name"|t }}</th>
+									<td>{% verbatim %} {{ user.firstname }} {% endverbatim %}</td>
+									
+								</tr>
+								<tr>
+									<th scope="row">{{ "Last name"|t }}</th>
+									<td>{% verbatim %} {{ user.lastname }} {% endverbatim %}</td>
+									
+								</tr>
+								<tr>
+									<th scope="row">{{ "Email"|t }}</th>
+									<td>{% verbatim %} {{ user.email }} {% endverbatim %}</td>
+									
+								</tr>
+								<tr>
+									<th scope="row">{{ "Username"|t }}</th>
+									<td>{% verbatim %} {{ user.username }} {% endverbatim %}</td>
+									
+								</tr>
+							</tbody>
+						</table>
+
+					</div>
+				</div>
+
+				<div id="recipients" class="hidden">
+					{% if formData is defined %}{{ errorList(formData.getErrors('sendto'), true) }}{% endif %}
+					
+					
+				
+					<!-- Send to Custom -->
+					{% if formData is defined %}{% set form_value = formData.sendto_custom %}{% else %}{% set form_value = false %}{% endif %}
+					{{  forms.checkboxField({
+							label: "Custom Recipients"|t,
+							instructions: "Send one Email to..."|t,
+							id: 'mailer_sendto_custom',
+							name: 'mailer_sendto_custom',
+							checked: form_value,
+							toggle: 'mailer_sendto_custom_settings'
+						}) 
+					}}
+
+					<div id="mailer_sendto_custom_settings" class="{% if formData is not defined or formData.sendto_custom == false %}hidden{% endif %}">
+						<!-- Recipient -->
+						{% if formData is defined %}{% set form_value = formData.to %}{% else %}{% set form_value = '' %}{% endif %}
+						{{  forms.textField({
+								label: "Recipients"|t,
+								instructions: "Only one email allowed"|t,
+								required: true,
+								id: 'mailer_to',
+								name: 'mailer_to',
+								value: form_value
+							}) 
+						}}
+						{% if formData is defined %}{{ errorList(formData.getErrors('to')) }}{% endif %}
+
+						
+						<!-- CC -->
+						{% if formData is defined %}{% set form_value = formData.cc %}{% else %}{% set form_value = '' %}{% endif %}
+						{{  forms.textField({
+								label: "CC"|t,
+								instructions: "Separate multiple emails with a comma"|t,
+								id: 'mailer_cc',
+								name: 'mailer_cc',
+								value: form_value
+							}) 
+						}}
+						{% if formData is defined %}{{ errorList(formData.getErrors('cc')) }}{% endif %}
+
+						
+						<!-- BCC -->
+						{% if formData is defined %}{% set form_value = formData.bcc %}{% else %}{% set form_value = '' %}{% endif %}
+						{{  forms.textField({
+								label: "BCC"|t,
+								instructions: "Separate multiple emails with a comma"|t,
+								id: 'mailer_bcc',
+								name: 'mailer_bcc',
+								value: form_value
+							}) 
+						}}
+						{% if formData is defined %}{{ errorList(formData.getErrors('bcc')) }}{% endif %}
+					</div>
+					
+					
+					<hr />
+					
+					<!-- Send to User-Group -->
+					{% if formData is defined %}{% set form_value = formData.sendto_usergroups %}{% else %}{% set form_value = false %}{% endif %}
+					{{  forms.checkboxField({
+							label: "User-Group Recipients"|t,
+							instructions: "Send the Email to each User in the following Groups..."|t,
+							id: 'mailer_sendto_usergroups',
+							name: 'mailer_sendto_usergroups',
+							checked: form_value,
+							toggle: 'mailer_sendto_usergroups_settings'
+						})
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('sendto_usergroups')) }}{% endif %}
+					
+					<div id="mailer_sendto_usergroups_settings" class="{% if formData is not defined or formData.sendto_usergroups == false %}hidden{% endif %}">
+						{% set user_groups = [{ label: "Admin"|t, value: 'admin' }] %}
+						{% for group in craft.userGroups.getAllGroups() %}
+							{% set user_groups = user_groups|merge([{ label: group.name, value: group.id }]) %}
+						{% endfor %}
+
+						{% if formData is defined %}{% set form_value = formData.usergroups %}{% else %}{% set form_value = '' %}{% endif %}
+						{{ forms.checkboxGroup({
+								label: "User Group"|t,
+								name: 'mailer_usergroups',
+								options: user_groups,
+								values: form_value
+							}) 
+						}}
+						{% if formData is defined %}<br />{{ errorList(formData.getErrors('usergroups')) }}{% endif %}
+					</div>
+					
+					
+					<hr />
+					
+						
+					<!-- Send to Users -->
+					{% if formData is defined %}{% set form_value = formData.sendto_users %}{% else %}{% set form_value = false %}{% endif %}
+					{{  forms.checkboxField({
+							label: "User Recipients"|t,
+							instructions: "Send the Email to each of the following Users..."|t,
+							id: 'mailer_sendto_users',
+							name: 'mailer_sendto_users',
+							checked: form_value,
+							toggle: 'mailer_sendto_users_settings'
+						})
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('sendto_users')) }}{% endif %}
+					
+					<div id="mailer_sendto_users_settings" class="{% if formData is not defined or formData.sendto_users == false %}hidden{% endif %}">
+						{% if formData.users is defined %}
+							{% set elements = formData.users %}
+						{% else %}
+							{% set elements = '' %}
+						{% endif %}
+
+						{{ forms.elementSelect({
+								label: "Users"|t,
+								id: 'mailer_users',
+								name: 'mailer_users',
+								addButtonLabel: 'Add a user'|t,
+								elementType: craft.elements.getElementType('User'),
+								elements: elements,
+								limit: null
+							}) 
+						}}
+						{% if formData is defined %}<br />{{ errorList(formData.getErrors('users')) }}{% endif %}
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+		<div class="item" data-position="right" data-colspan="1">
+			<div class="pane">
+				
+				<div>
+					
+					<!-- Sender name -->
+					{% if formData is defined %}{% set form_value = formData.sender_name %}{% else %}{% set form_value = craft.systemSettings.email.senderName %}{% endif %}
+					{{  forms.textField({
+							label: "Your Name"|t,
+							id: 'mailer_sender_name',
+							name: 'mailer_sender_name',
+							value: form_value,
+							required: true
+						}) 
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('sender_name')) }}{% endif %}
+
+					<!-- Sender mail -->
+					{% if formData is defined %}{% set form_value = formData.sender_mail %}{% else %}{% set form_value = craft.systemSettings.email.emailAddress %}{% endif %}
+					{{  forms.textField({
+							label: "Your Email"|t,
+							id: 'mailer_sender_mail',
+							name: 'mailer_sender_mail',
+							value: form_value,
+							required: true
+						}) 
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('sender_mail')) }}{% endif %}
+
+					<hr />
+
+					<!-- Attachment -->
+					{{  forms.fileField({
+							label: "Attachment"|t,
+							id: 'mailer_attachment',
+							name: 'mailer_attachment',
+							required: false
+						}) 
+					}}
+					{% if formData is defined %}{{ errorList(formData.getErrors('attachment')) }}{% endif %}
+				</div>
+				
+				
+				{% if craft.mailer.testmode %}
+				<hr />
+				
+				<div>
+					<h5 class="first">{{ 'Email test mode'|t }} </h5>
+					<p><span class="status active"></span>{{ 'Active'|t }}</p>
+					
+					<h5 class="first">{{ 'Email test address'|t }} </h5>
+					<p><span class="status active"></span>{{ craft.mailer.testmode }}</p>
+				</div>
+				{% endif %}
+				
+			</div>
+			
+			<hr />
+			
+			<a href="" class="btn submit formsubmit" data-icon="share">{{ 'Send'|t }}</a>
+		</div>
+		
+	</form>
+{% endblock %}
