@@ -35,35 +35,37 @@ You can make use of the plugins services in your own plugins:
 ###Example:
 
 ```php
-//Email
+//Create an EmailModel
 $email = new EmailModel;
 
+//Set the necessary attributes 
 $email->sender_name = 'My name';
 $email->sender_mail = 'my@mail.com';
 $email->subject     = 'Email subject';
 $email->htmlBody    = 'The message';
 
 
-//Create recipients array
+//Create a recipients array (See "Mailer_RecipientsModel" below for more info)
+//Each sub-array is one Email:
 $custom_recipients = array(
 	array(
 		'to' => 'some1@email.com',
 		'cc' => 'some2@email.com'
-	),
+	), //Recipients of the 1. Mail
 	array(
 		'to' => 'some3@email.com',
 		'cc' => 'some4@email.com'
-	)
+	) //Recipients of the 2. Mail
 );
 
 
-//Save to model
+//Save to array to RecipientsModel
 $recipients = new Mailer_RecipientsModel();
 $recipients->recipients = $custom_recipients;
 
 
 //Create mailer
-$this->newMailer($recipients, $email);
+$this->newMailer($recipients, $email); //This will start the MailerTask
 ```
 
 ###newMailer():
