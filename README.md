@@ -84,6 +84,8 @@ Creates a recipients-array from UserGroup-Ids
 craft()->mailer_main->getUserGroupRecipients($usergroup_ids, $exlude_user_ids=array());
 ```
 
+If you want to include admins as well add 'admin' to the $usergroup_ids-array.
+
 Optional: You can pass a second parameter with an array of user-ids to exclude.
 
 **Example:**
