@@ -44,7 +44,7 @@ class Mailer_MainService extends BaseApplicationComponent
 			//Check
 			if (!$recipients->validate()) {
 				return false;
-			}	
+			}
 
 			//Create mailer
 			$this->newMailer($recipients, $email, Craft::t('Emails (Custom)') );
@@ -59,20 +59,23 @@ class Mailer_MainService extends BaseApplicationComponent
 			//Get Recipients
 			$usergroup_recipients = $this->getUserGroupRecipients($formData->usergroups, $formData->users);
 
-			//Save to model
-			$recipients = new Mailer_RecipientsModel();
-			$recipients->recipients = $usergroup_recipients;
+			if ($usergroup_recipients != null) { //null = All users got excluded
 
-			//Check
-			if (!$recipients->validate()) {
-				return false;
+				//Save to model
+				$recipients = new Mailer_RecipientsModel();
+				$recipients->recipients = $usergroup_recipients;
+
+				//Check
+				if (!$recipients->validate()) {
+					return false;
+				}
+
+				//Create mailer
+				$this->newMailer($recipients, $email, Craft::t('Emails (UserGroups)'));
+
+				//Clean
+				unset($recipients);
 			}
-
-			//Create mailer
-			$this->newMailer($recipients, $email, Craft::t('Emails (UserGroups)'));
-
-			//Clean
-			unset($recipients);
 		}
 		
 		
@@ -131,7 +134,7 @@ class Mailer_MainService extends BaseApplicationComponent
 	 *
 	 * @param array $usergroup_ids
 	 * @param array $exlude_user_ids
-	 * @return array
+	 * @return array (Or null if all users got excluded)
 	 */
 	public function getUserGroupRecipients($usergroup_ids, $exlude_user_ids=array())
 	{	
@@ -139,6 +142,16 @@ class Mailer_MainService extends BaseApplicationComponent
  		$criteria 			= craft()->elements->getCriteria(ElementType::User);
 		$criteria->groupId 	= $usergroup_ids;
 		$users 				= $criteria->find();
+
+
+		//Include admins?
+		if (in_array('admin', $usergroup_ids)) {
+			$admin_criteria 		= craft()->elements->getCriteria(ElementType::User);
+			$admin_criteria->admin 	= true;
+			$admin_users 			= $admin_criteria->find();
+
+			$users = array_merge($admin_users, $users);
+		}
 
 
 		//Get ids of those users
@@ -149,17 +162,22 @@ class Mailer_MainService extends BaseApplicationComponent
 		}
 
 
-		//Exclude IDs
-		if (!empty($excludeUserIds)) {
-			$user_ids = array_diff($user_ids, $exlude_user_ids);
-		}
-
-
 		//Check
 		if (count($user_ids) == 0) {
 			MailerPlugin::log('getUserGroupRecipients(): No Users found in passed UserGroups. UserGroups IDs: "'. implode(', ', $usergroup_ids) .'"', LogLevel::Error);
 			
 			return false;
+		}
+
+
+		//Exclude IDs
+		if (!empty($exlude_user_ids)) {
+			$user_ids = array_diff($user_ids, $exlude_user_ids);
+
+			if (count($user_ids) == 0) {
+				//All users got excluded
+				return null;
+			}
 		}
 
 
