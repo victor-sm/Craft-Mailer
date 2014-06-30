@@ -41,52 +41,44 @@ class Mailer_RecipientsModel extends BaseModel
 		$regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/';
 
 
-		//Any Recipient specified?
-		if(empty($this->recipients)) {
-			$this->addError('recipients', Craft::t('No recipients specified'));
-		}
-		else {
+		//Check each array
+		foreach($this->recipients as $array) {
+			//To (required)
+			/*$to_emails = preg_split('[,]', $array['to']);
 
-			//Check each array
-			foreach($this->recipients as $array) {
-				//To (required)
-				/*$to_emails = preg_split('[,]', $array['to']);
-
-				foreach($to_emails as $mail) {
-					if (preg_match( $regex, trim($mail) ) == 0) {
-						$this->addError('to', trim($mail) . Craft::t(' is not a valid email'));
-					}
-				}*/
-
-					if (preg_match( $regex, $array['to'] ) == 0) {
-						$this->addError('to', $array['to'] . Craft::t(' is not a valid email'));
-					}
-					//Currently only one 'to' address is allowed.
-
-
-				//CC (optional)
-				if (!empty($array['cc'])) {
-					$cc_emails = preg_split('[,]', $array['cc']);
-
-					foreach($cc_emails as $mail) {
-						if (preg_match( $regex, trim($mail) ) == 0) {
-							$this->addError('cc', trim($mail) . Craft::t(' is not a valid email'));
-						}
-					}
+			foreach($to_emails as $mail) {
+				if (preg_match( $regex, trim($mail) ) == 0) {
+					$this->addError('to', trim($mail) . Craft::t(' is not a valid email'));
 				}
+			}*/
 
-				//BCC (optional)
-				if (!empty($array['bcc'])) {
-					$bcc_emails = preg_split('[,]', $array['bcc']);
+				if (preg_match( $regex, $array['to'] ) == 0) {
+					$this->addError('to', $array['to'] . Craft::t(' is not a valid email'));
+				}
+				//Currently only one 'to' address is allowed.
 
-					foreach($bcc_emails as $mail) {
-						if (preg_match( $regex, trim($mail) ) == 0) {
-							$this->addError('bcc', trim($mail) . Craft::t(' is not a valid email'));
-						}
+
+			//CC (optional)
+			if (!empty($array['cc'])) {
+				$cc_emails = preg_split('[,]', $array['cc']);
+
+				foreach($cc_emails as $mail) {
+					if (preg_match( $regex, trim($mail) ) == 0) {
+						$this->addError('cc', trim($mail) . Craft::t(' is not a valid email'));
 					}
 				}
 			}
-			
+
+			//BCC (optional)
+			if (!empty($array['bcc'])) {
+				$bcc_emails = preg_split('[,]', $array['bcc']);
+
+				foreach($bcc_emails as $mail) {
+					if (preg_match( $regex, trim($mail) ) == 0) {
+						$this->addError('bcc', trim($mail) . Craft::t(' is not a valid email'));
+					}
+				}
+			}
 		}
 
 		return parent::validate($attributes, false);
