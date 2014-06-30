@@ -1,0 +1,43 @@
+{% import '_includes/forms' as forms %}
+
+{{  forms.textField({
+		first: true,
+		label: "Plugin Name"|t,
+		instructions: "How the plugin should be named in the CP"|t,
+		id: 'name',
+		name: 'name',
+		value: settings.name,
+		required: true
+	}) 
+}}
+
+<hr />
+
+{{  forms.lightswitchField({
+		label: "Use batch mode?"|t,
+		id: 'batchMode',
+		name: 'batchMode',
+		value: settings.batchMode,
+		required: true,
+		on: (settings.batchMode is defined) ? settings.batchMode : ''
+	}) 
+}}
+
+{{  forms.textField({
+		label: "Number of mails per batch"|t,
+		id: 'batchMails',
+		name: 'batchMails',
+		value: settings.batchMails,
+		required: true
+	}) 
+}}
+
+{{  forms.textField({
+		label: "Waiting time between batches"|t,
+		instructions: "Time in seconds"|t,
+		id: 'batchTime',
+		name: 'batchTime',
+		value: settings.batchTime,
+		required: true
+	}) 
+}}
