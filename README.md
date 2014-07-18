@@ -5,18 +5,27 @@ Send Emails from the CP to custom recipients, specific users or whole usergroups
 
 **Note:** This plugin is currently in public beta.
 
-**Supports:**
 
-- Sending mails in batches.
-- Using Twig inside the mails body.
-- File-attachments
+##Features:
 
-
-##Install:
-
-1. Move the `mailer` directory into the `craft/plugins/` directory.
-2. Go to `Settings -> Plugins` and enable 'Mailer'.
-3. Adjust the settings if you need to, and make sure Crafts Email settings are correct.
+- Send emails in timed batches
+  - Custom batch size
+  - Custom waiting time
+- Send emails to...
+  - Custom recipients
+  - Whole user-groups
+  - Specific users
+- Recipient CSV export
+  - If you want to use your email app, just select some users and export the email list as .csv
+- Use Twig inside your email
+  - Four custom variables: first name, last name, username, email
+  - Optional save-mode, which forbids any Twig code except those variables.
+- Log
+  - Use already send emails as a template
+  - List of errors which occured while sending
+- Translations
+  - English
+  - German
 
 
 ##Overview:
@@ -26,6 +35,12 @@ Send Emails from the CP to custom recipients, specific users or whole usergroups
 ![Overview of the plugins CP section](/overview_2.jpg)
 
 
+##Install:
+
+1. Move the `mailer` directory into the `craft/plugins/` directory.
+2. Go to `Settings -> Plugins` and enable 'Mailer'.
+3. Adjust the settings if you need to, and make sure Crafts Email settings are correct.
+4. 
 
 ##Services (API):
 
