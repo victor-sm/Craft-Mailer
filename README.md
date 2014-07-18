@@ -40,7 +40,7 @@ Send Emails from the CP to custom recipients, specific users or whole usergroups
 1. Move the `mailer` directory into the `craft/plugins/` directory.
 2. Go to `Settings -> Plugins` and enable 'Mailer'.
 3. Adjust the settings if you need to, and make sure Crafts Email settings are correct.
-4. 
+
 
 ##Services (API):
 
