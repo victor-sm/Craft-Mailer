@@ -1,0 +1,109 @@
+{% includeCssResource "lib/redactor/redactor.css" %}
+{% includeJsResource "lib/redactor/redactor.js" %}
+
+{% extends "_layouts/cp" %}
+{% import '_includes/forms' as forms %}
+
+{% set crumbs = [
+	{ label: craft.mailer.name, url: url('mailer') },
+	{ label: 'Logs'|t, url: url('mailer#log') }
+] %}
+
+
+{% set log = craft.mailer.log_records(craft.request.lastSegment) %}
+
+{% if log.id is not defined or log is empty %}
+	{% redirect 'mailer#log' %}
+{% endif %}
+
+
+{% set title = log.subject %}
+
+{% block main %}
+	<div class="grid">
+
+		<div class="item first" data-position="left">
+			<div class="pane">
+				<nav id="tabs" class="tabs">
+					<ul>
+						<li><a tabindex="0" id="tab-email" class="tab sel" href="#email">{{ 'Email'|t }}</a></li>
+						<li><a tabindex="0" id="tab-errors" class="tab" href="#errors">{{ 'Error list'|t }}</a></li>
+					</ul>
+				</nav>
+
+				<div id="email">
+					{{  forms.textField({
+							label: "Subject"|t,
+							id: 'mailer_subject',
+							name: 'mailer_subject',
+							required: false,
+							value: log.subject
+						}) 
+					}}
+
+					{{  forms.textareaField({
+							label: "Message"|t,
+							id: 'log_htmlBody',
+							name: 'mailer_htmlBody',
+							required: false,
+							rows: 10,
+							value: log.htmlBody
+						}) 
+					}}
+
+					<a class="btn small" href="{{ url('mailer?template_id=' ~ log.id) }}">{{ 'Use as template'|t }}</a>
+				</div>
+
+				<div id="errors" class="hidden">
+				{% if log.errors|length > 0 %}
+					<div class="tableview">
+						<table class="data fullwidth">
+							<thead>
+								<tr>
+									<th scope="col" data-attribute="nr">{{ 'Nr'|t }}</th>
+									<th scope="col" data-attribute="error">{{ 'Error'|t }}</th>
+									<th scope="col" data-attribute="email">{{ 'Email'|t }}</th>
+								</tr>
+							</thead>
+
+							<tbody>
+							{% for error in log.errors %}
+								<tr>
+									<td data-title="nr"><span class="status expired"></span> {{ loop.index }}</td>
+									<td data-title="error">{{ error.message|t }}</td>
+									<td data-title="email">{{ error.email }}<a</td>
+								</tr>
+							{% endfor %}
+							</tbody>
+						</table>
+					</div>
+				{% else %}
+					<p>{{ 'No errors'|t }}</p>
+				{% endif %}
+				</div>
+			</div>
+		</div>
+
+		<div class="item first" data-position="right" data-colspan="1">
+			<div class="pane">
+				<h5>{{ 'Description'|t }}</h5>
+				<p>{{ log.description }}</p>
+
+				<h5>{{ 'Started'|t }}</h5>
+				<p>{{ log.dateCreated|date('m.d.y - H:i'|t) }}</p>
+
+				<h5>{{ 'Finished'|t }}</h5>
+				<p>{{ log.dateFinished ? log.dateFinished|date('m.d.y - H:i'|t) : '-'}}</p>
+
+				<hr />
+
+				<h5>{{ 'Send emails'|t }}</h5>
+				<p><span class="status active"></span> {{ log.success }}</p>
+
+				<h5>{{ 'Failed emails'|t }}</h5>
+				<p><span class="status expired"></span> {{ log.errors|length }}</p>
+			</div>
+		</div>
+
+	</div>
+{% endblock %}

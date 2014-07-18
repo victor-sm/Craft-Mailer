@@ -6,6 +6,14 @@
 
 {% set title = craft.mailer.name %}
 
+{% if craft.request.getParam('template_id') is not empty and formData is not defined %}
+	{% set log = craft.mailer.log_records(craft.request.getParam('template_id')) %}
+
+	{% if log.id is empty or log.id == 0 %}
+		{% redirect 'mailer' %}
+	{% endif %}
+{% endif %}
+
 {% macro errorList(errors, hr) %}
     {% if errors %}
         <ul class="errors">
@@ -20,8 +28,6 @@
 {% endmacro %}
 {% from _self import errorList %}
 
-
-
 {% block main %}
     <form id="mailerform" method="post" action="" class="grid" accept-charset="UTF-8" data-saveshortcut="1">
 		<input type="hidden" name="action" value="mailer/form/send">
@@ -32,12 +38,22 @@
 					<ul>
 						<li><a tabindex="0" id="tab-message" class="tab sel" href="#message">{{ 'Message'|t }}</a></li>
 						<li><a tabindex="0" id="tab-recipients" class="tab" href="#recipients">{{ 'Recipients'|t }}</a></li>
+						<li><a tabindex="0" id="tab-log" class="tab" href="#log">{{ 'Logs'|t }}</a></li>
 					</ul>
 				</nav>
 				
-				<div id="message" class="">				
+				<div id="message" class="">	
 					<!-- Subject -->
-					{% if formData is defined %}{% set form_value = formData.subject %}{% else %}{% set form_value = '' %}{% endif %}
+					{% if formData is defined %}
+						{% set form_value = formData.subject %}
+					{% else %}
+						{% if log is defined %}
+							{% set form_value = log.subject %}
+						{% else %}
+							{% set form_value = '' %}
+						{% endif %}
+					{% endif %}
+
 					{{  forms.textField({
 							label: "Subject"|t,
 							id: 'mailer_subject',
@@ -50,7 +66,16 @@
 					
 					
 					<!-- Body -->
-					{% if formData is defined %}{% set form_value = formData.htmlBody %}{% else %}{% set form_value = '' %}{% endif %}
+					{% if formData is defined %}
+						{% set form_value = formData.htmlBody %}
+					{% else %}
+						{% if log is defined %}
+							{% set form_value = log.htmlBody %}
+						{% else %}
+							{% set form_value = '' %}
+						{% endif %}
+					{% endif %}
+
 					{{  forms.textareaField({
 							label: "Message"|t,
 							id: 'mailer_htmlBody',
@@ -224,7 +249,58 @@
 						}}
 						{% if formData is defined %}<br />{{ errorList(formData.getErrors('users')) }}{% endif %}
 					</div>
+
+
+					<hr />
+
+
+					<!-- Export -->
+					<input class="btn small formsubmit" value="{{ 'Export selected Users'|t }}" type="button" data-action="mailer/form/export">
 					
+				</div>
+
+				<div id="log" class="hidden">
+					{% if craft.mailer.log_records|length > 0 %}
+						<div class="tableview">
+							<table class="data fullwidth">
+								<thead>
+									<tr>
+										<th scope="col" data-attribute="subject">{{ 'Subject'|t }}</th>
+										<th scope="col" data-attribute="description">{{ 'Description'|t }}</th>
+										<th scope="col" data-attribute="started">{{ 'Started'|t }}</th>
+										<th scope="col" data-attribute="finished">{{ 'Finished'|t }}</th>
+									</tr>
+								</thead>
+
+								<tbody>
+								
+								{% for log in craft.mailer.log_records %}
+									<tr>
+										<td scope="row" data-title="subject">
+											<span class="status {{ log.status|replace({'finished': 'live', 'running': 'disabled', 'failed': 'expired'}) }}"></span>
+											{% if log.status != 'running' %}<a href="{{ url('mailer/log/'~log.id) }}">{{ log.subject }}</a>{% else %}{{ log.subject }}{% endif %}
+										</td>
+										<td scope="row" data-title="description">{{ log.description }}</td>
+										<td scope="row" data-title="started">{{ log.dateCreated|date('m.d.y - H:i'|t) }}</td>
+										<td scope="row" data-title="finished">{{ log.dateFinished ? log.dateFinished|date('m.d.y - H:i'|t) : '-'}}</td>
+									</tr>
+								{% endfor %}
+								
+								</tbody>
+							</table>
+						</div>
+
+						<br />
+						<input class="btn small formsubmit" value="{{ 'Clear Logs'|t }}" type="button" data-redirect="mailer" data-confirm="{{ 'Are you sure you want to delete all logs?'|t }}" data-action="mailer/form/clearLog">
+						<input class="btn small" id="refresh_log" type="button" value="{{ 'Refresh'|t }}" data-url="{{ url('mailer/log/X') }}">
+				
+					{% else %}
+						<p>{{ 'No logs available'|t }}</p>
+
+						<br />
+						<input class="btn small" id="refresh_log" type="button" value="{{ 'Refresh'|t }}" data-url="{{ url('mailer/log/X') }}">
+					{% endif %}
+
 				</div>
 			</div>
 		</div>

@@ -47,7 +47,7 @@ class Mailer_MainService extends BaseApplicationComponent
 			}
 
 			//Create mailer
-			$this->newMailer($recipients, $email, Craft::t('Emails (Custom)') );
+			$this->newMailer($recipients, $email, Craft::t('Custom') );
 
 			//Clean
 			unset($recipients);
@@ -71,7 +71,7 @@ class Mailer_MainService extends BaseApplicationComponent
 				}
 
 				//Create mailer
-				$this->newMailer($recipients, $email, Craft::t('Emails (UserGroups)'));
+				$this->newMailer($recipients, $email, Craft::t('User Groups'));
 
 				//Clean
 				unset($recipients);
@@ -94,7 +94,7 @@ class Mailer_MainService extends BaseApplicationComponent
 			}
 
 			//Create mailer
-			$this->newMailer($recipients, $email, Craft::t('Emails (Users)'));
+			$this->newMailer($recipients, $email, Craft::t('Users'));
 
 			//Clean
 			unset($recipients);
@@ -116,6 +116,9 @@ class Mailer_MainService extends BaseApplicationComponent
 	 */
 	public function newMailer(Mailer_RecipientsModel $recipients, EmailModel $email, $description=null)
 	{
+		//Description
+		$description = craft()->plugins->getPlugin('mailer')->getName().': '.$description;
+
 		//StartTask
 		craft()->tasks->createTask('Mailer', $description, array(
 			'recipients' 	=> $recipients,
@@ -139,7 +142,7 @@ class Mailer_MainService extends BaseApplicationComponent
 	public function getUserGroupRecipients($usergroup_ids, $exlude_user_ids=array())
 	{	
 		//Get all users from specified usergroups
- 		$criteria 			= craft()->elements->getCriteria(ElementType::User);
+		$criteria 			= craft()->elements->getCriteria(ElementType::User);
 		$criteria->groupId 	= $usergroup_ids;
 		$users 				= $criteria->find();
 
@@ -160,6 +163,10 @@ class Mailer_MainService extends BaseApplicationComponent
 		foreach ($users as $user) {
 			$user_ids[] = $user->id;
 		}
+
+
+		//Remove duplicates
+		$user_ids = array_unique($user_ids);
 
 
 		//Check
@@ -228,6 +235,67 @@ class Mailer_MainService extends BaseApplicationComponent
 
 
 		return $recipients;
+	}
+
+
+
+
+	/**
+	 * Create CSV from User data
+	 *
+	 * @param array $exportData
+	 * @return string
+	 */
+	public function createUserCSV($exportData)
+	{
+		$user_ids = array();
+
+		//UserGroup
+		if ($exportData->sendto_usergroups) {
+			//Criteria
+			$criteria 			= craft()->elements->getCriteria(ElementType::User);
+			$criteria->groupId 	= $exportData->usergroups;
+			$users 				= $criteria->find();
+
+			//Get ids of those users
+			foreach ($users as $user) {
+				$user_ids[] = $user->id;
+			}
+
+			unset($users);
+		}
+
+		//Merge with Users
+		if ($exportData->sendto_users && count($exportData->users) > 0) {
+			$user_ids = array_merge($user_ids, $exportData->users);
+		}
+
+		//Remove duplicates
+		$user_ids = array_unique($user_ids);
+
+		//Get UserData
+		$criteria 			= craft()->elements->getCriteria(ElementType::User);
+		$criteria->id 		= $user_ids;
+		$users 				= $criteria->find();
+
+		//CSV-Data
+		$csv_data 	= array();
+		$csv_data[]	= array(Craft::t('First name'), Craft::t('Last name'), Craft::t('Username'), Craft::t('Email'));
+
+		//Add to CSV-Data
+		foreach ($users as $user) {
+			$csv_data[]	= array($user->firstName, $user->lastName, $user->username, $user->email);
+		}
+
+		//Generate CSV
+		$csv = '';
+		foreach ($csv_data as $row) {
+			$csv .= implode(';', $row);
+			$csv .= "\n";
+		}
+
+		//Return CSV
+		return $csv;
 	}
 
 

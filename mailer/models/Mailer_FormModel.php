@@ -128,7 +128,28 @@ class Mailer_FormModel extends BaseModel
 			}
 		}
 
+
+		//Message (Safe-Mode)
+		if (craft()->plugins->getPlugin('mailer')->getSettings()->safeMode) {
+			$body = $this->htmlBody;
+
+			//Remove "allowed" variables
+			$allowed = array(
+				'/{{ user.firstName }}/i',
+				'/{{ user.lastName }}/i',
+				'/{{ user.email }}/i',
+				'/{{ user.username }}/i',
+			);
+			$body = preg_replace($allowed, ' ', $body);
+
+			//Check for other Twig code
+			if (preg_match_all('({{|}}|{%|%})', $body) != 0) {
+				$this->addError('htmlBody', Craft::t('Please remove all {{, }}, {%, %} which are not part of a variable'));
+			}
+		}
+
 		
+		//Return
 		return parent::validate($attributes, false);
 	}
 }

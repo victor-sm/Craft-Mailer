@@ -17,6 +17,8 @@ class MailerTask extends BaseTask
 		return array(
 			'recipients'	=> AttributeType::Mixed,
 			'email' 		=> AttributeType::Mixed,
+
+			'log' 			=> AttributeType::Mixed,
 			'batchMode' 	=> array(AttributeType::Bool, 'default' => craft()->plugins->getPlugin('mailer')->getSettings()->batchMode),
 			'batchMails' 	=> array(AttributeType::Number, 'default' => craft()->plugins->getPlugin('mailer')->getSettings()->batchMails),
 			'batchTime' 	=> array(AttributeType::Number, 'default' => craft()->plugins->getPlugin('mailer')->getSettings()->batchTime)
@@ -32,7 +34,7 @@ class MailerTask extends BaseTask
 	public function getDescription()
 	{
 
-		$description = Craft::t('Sending Mails');
+		$description = craft()->plugins->getPlugin('mailer')->getName();
 
 		return $description;
 	}
@@ -75,10 +77,33 @@ class MailerTask extends BaseTask
 		$email = $this->getSettings()->email;
 
 
+		//Log
+		if ($step == 0) {
+			//Create & Save LogRecord
+			$record = new Mailer_LogRecord;
+			$record->setIsNewRecord(true);
+
+			$record->subject 		= $email->subject;
+			$record->htmlBody 		= $email->htmlBody;
+			$record->status 		= 'running';
+			$record->description 	= str_replace(craft()->plugins->getPlugin('mailer')->getName().': ', '', $this->model->description);
+
+			$record->save();
+
+			//Create LogModel
+			$log = new Mailer_LogModel;
+			$log->id 		= $record->id;
+			$log->success	= 0;
+			$log->errors 	= array();
+		}
+		else {
+			$log = $this->getSettings()->log;
+		}
+
+
 		//Get recipients for this task-loop
 		$recipients = $this->getSettings()->recipients->recipients;
 		$recipients = $recipients[$step];
-
 
 
 		//Set recipients
@@ -97,19 +122,55 @@ class MailerTask extends BaseTask
 		else {
 			$email->bcc = null;
 		}
-		
+			
 
 		//Send
 		try {
 			craft()->email->sendEmail($email);
+
+			//Add to Log
+			$log->success++;
 		}
 		catch (\Exception $e) {
 			MailerPlugin::log($e->getMessage(), LogLevel::Error);
+
+			//Add to Log
+			$errors = $log->errors;
+			$errors[] = array('message' => $e->getMessage(), 'email' => $email->toEmail);
+			$log->errors = $errors;
+		}
+
+
+		//Update Log
+		if ($step == $this->getTotalSteps()-1) {
+			//Get LogRecord
+			$record = Mailer_LogRecord::model()->findbyPk($log->id);
+			
+			//Set attributes from LogModel
+			$record->dateFinished 	= new DateTime();
+			$record->errors 		= $log->errors;
+			$record->success 		= $log->success;
+
+			if (count($record->errors) > 0) {
+				$record->status = 'failed';
+			}
+			else {
+				$record->status = 'finished';
+			}
+
+			//Update
+			$record->update();
+		}
+		else {
+			//Save to settings
+			$this->getSettings()->log = $log;
 		}
 
 
 		//Clean & Return
+		unset($log);
 		unset($email);
+		unset($recipients);
 		return true;
 	}
 
