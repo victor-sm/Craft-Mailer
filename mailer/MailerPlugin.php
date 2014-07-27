@@ -72,11 +72,13 @@ class MailerPlugin extends BasePlugin
 		parent::init();
 		
 		//Include plugin JS
-        if (craft()->request->isCpRequest() && craft()->request->getSegment(1) == 'mailer') {
-			craft()->templates->includeJsFile( UrlHelper::getResourceUrl('mailer/mailer.js') );
+        if(!craft()->isConsole()){
+            if (craft()->request->isCpRequest() && craft()->request->getSegment(1) == 'mailer') {
+    			craft()->templates->includeJsFile( UrlHelper::getResourceUrl('mailer/mailer.js') );
 
-            craft()->log->removeRoute('WebLogRoute');
-            craft()->log->removeRoute('ProfileLogRoute');
+                craft()->log->removeRoute('WebLogRoute');
+                craft()->log->removeRoute('ProfileLogRoute');
+            }
         }
 	}
 	
