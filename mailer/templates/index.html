@@ -180,7 +180,7 @@
 						{% if formData is defined %}{{ errorList(formData.getErrors('bcc')) }}{% endif %}
 					</div>
 					
-					
+					{% if craft.app.getEditionName() == 'Pro' %}
 					<hr />
 					
 					<!-- Send to User-Group -->
@@ -213,6 +213,7 @@
 						{% if formData is defined %}<br />{{ errorList(formData.getErrors('usergroups')) }}{% endif %}
 					</div>
 					
+					{% endif %}
 					
 					<hr />
 					

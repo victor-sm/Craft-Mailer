@@ -17,7 +17,7 @@ class MailerPlugin extends BasePlugin
 
     function getVersion()
     {
-        return '0.3';
+        return '0.4';
     }
 
     function getDeveloper()
@@ -69,15 +69,18 @@ class MailerPlugin extends BasePlugin
 	{
 		parent::init();
 		
-		//Include plugin JS
-        if(!craft()->isConsole()){
-            if (craft()->request->isCpRequest() && craft()->request->getSegment(1) == 'mailer') {
-    			craft()->templates->includeJsFile( UrlHelper::getResourceUrl('mailer/mailer.js') );
+		if(!craft()->isConsole())
+		{
+			if (craft()->request->isCpRequest() && craft()->request->getSegment(1) == 'mailer')
+			{
+				//Include JS
+				craft()->templates->includeJsFile( UrlHelper::getResourceUrl('mailer/mailer.js') );
 
-                craft()->log->removeRoute('WebLogRoute');
-                craft()->log->removeRoute('ProfileLogRoute');
-            }
-        }
+				//Turn Profiler off
+				craft()->log->removeRoute('WebLogRoute');
+				craft()->log->removeRoute('ProfileLogRoute');
+			}
+		}
 	}
 	
 }
