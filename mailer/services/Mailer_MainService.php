@@ -43,6 +43,7 @@ class Mailer_MainService extends BaseApplicationComponent
 
 			//Check
 			if (!$recipients->validate()) {
+				MailerPlugin::log('Custom validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 				return false;
 			}
 
@@ -67,6 +68,7 @@ class Mailer_MainService extends BaseApplicationComponent
 
 				//Check
 				if (!$recipients->validate()) {
+					MailerPlugin::log('UserGroup validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 					return false;
 				}
 
@@ -90,6 +92,7 @@ class Mailer_MainService extends BaseApplicationComponent
 
 			//Check
 			if (!$recipients->validate()) {
+				MailerPlugin::log('Users validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 				return false;
 			}
 
