@@ -53,7 +53,7 @@ class Mailer_FormModel extends BaseModel
 		
 		//Custom recipients
 		if ($this->sendto_custom) {
-			$regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/';
+			$regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/i';
 			
 			//Recipients
 			if (!empty($this->to)) {
