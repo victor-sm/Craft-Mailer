@@ -38,7 +38,7 @@ class Mailer_RecipientsModel extends BaseModel
 		
 		
 		//Mail RegEx
-		$regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/';
+		$regex = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/i';
 
 
 		//Any Recipient specified?
