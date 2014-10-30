@@ -30,6 +30,7 @@
 
 {% block main %}
     <form id="mailerform" method="post" action="" class="grid" accept-charset="UTF-8" data-saveshortcut="1">
+		{{ getCsrfInput() }}
 		<input type="hidden" name="action" value="mailer/form/send">
 
 		<div class="item first" data-position="left">
