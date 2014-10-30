@@ -19,6 +19,16 @@ $(document).ready(function() {
 	$('#variable_btn').click(function() {
 		$('#variable_list').slideToggle();
 	});
+	
+	
+	//AddToRedactor
+	$('.addToRedactor').click(function(event) {
+		event.preventDefault();
+
+		var addText = $(this).text();
+		//Change 'insertText' to 'insert.text' for Redactor 10
+		$('#mailer_htmlBody').redactor('insertText', addText);
+	});
 
 
 	//Log Refresh
