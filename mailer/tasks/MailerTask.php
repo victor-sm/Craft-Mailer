@@ -79,6 +79,10 @@ class MailerTask extends BaseTask
 
 		//Log
 		if ($step == 0) {
+			//Log
+			$desc = str_replace(craft()->plugins->getPlugin('mailer')->getName().': ', '', $this->model->description);
+			MailerPlugin::log('MailerTask ('.$desc.'): Task started: Step 0', LogLevel::Info);
+			
 			//Create & Save LogRecord
 			$record = new Mailer_LogRecord;
 			$record->setIsNewRecord(true);
@@ -86,9 +90,16 @@ class MailerTask extends BaseTask
 			$record->subject 		= $email->subject;
 			$record->htmlBody 		= $email->htmlBody;
 			$record->status 		= 'running';
-			$record->description 	= str_replace(craft()->plugins->getPlugin('mailer')->getName().': ', '', $this->model->description);
+			$record->description 	= $desc;
 
 			$record->save();
+			
+			if ($record->hasErrors()) {
+				MailerPlugin::log('MailerTask ('.$record->description.'): Failed to save LogRecord: "'. implode('; ', $record->getErrors()) .'"', LogLevel::Error);
+			}
+			else {
+				MailerPlugin::log('MailerTask ('.$record->description.'): New LogRecord created', LogLevel::Info);
+			}
 
 			//Create LogModel
 			$log = new Mailer_LogModel;
@@ -129,6 +140,7 @@ class MailerTask extends BaseTask
 			craft()->email->sendEmail($email);
 
 			//Add to Log
+			MailerPlugin::log('MailerTask ('.$record->description.'): Mail send to "'.$email->toEmail.'"', LogLevel::Info);
 			$log->success++;
 		}
 		catch (\Exception $e) {
@@ -160,6 +172,13 @@ class MailerTask extends BaseTask
 
 			//Update
 			$record->update();
+			
+			if ($record->hasErrors()) {
+				MailerPlugin::log('MailerTask ('.$record->description.'): Last Step / Failed to update LogRecord: "'. implode('; ', $record->getErrors()) .'"', LogLevel::Error);
+			}
+			else {
+				MailerPlugin::log('MailerTask ('.$record->description.'): Last Step / LogRecord successfully updated', LogLevel::Info);
+			}
 		}
 		else {
 			//Save to settings

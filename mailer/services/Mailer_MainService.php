@@ -11,7 +11,7 @@ class Mailer_MainService extends BaseApplicationComponent
 	 * @return bool
 	 */
 	public function newMailer_fromForm(Mailer_FormModel $formData)
-	{
+	{			
 		//Create EmailModel
 		$email = new EmailModel();
 		
@@ -28,6 +28,9 @@ class Mailer_MainService extends BaseApplicationComponent
 
 		//Custom Mailer
 		if ($formData->sendto_custom) {
+			//Log
+			MailerPlugin::log('Creating Custom Mailer_RecipientsModel', LogLevel::Info);
+			
 			//Create recipients array
 			$custom_recipients = array(
 				array(
@@ -43,8 +46,11 @@ class Mailer_MainService extends BaseApplicationComponent
 
 			//Check
 			if (!$recipients->validate()) {
-				MailerPlugin::log('Custom validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
+				MailerPlugin::log('Custom Mailer_RecipientsModel validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 				return false;
+			}
+			else {
+				MailerPlugin::log('Custom Mailer_RecipientsModel validation successful', LogLevel::Info);
 			}
 
 			//Create mailer
@@ -57,6 +63,9 @@ class Mailer_MainService extends BaseApplicationComponent
 		
 		//Usergroups Mailer
 		if ($formData->sendto_usergroups) {
+			//Log
+			MailerPlugin::log('Creating UserGroups Mailer_RecipientsModel', LogLevel::Info);
+			
 			//Get Recipients
 			$usergroup_recipients = $this->getUserGroupRecipients($formData->usergroups, $formData->users);
 
@@ -68,8 +77,11 @@ class Mailer_MainService extends BaseApplicationComponent
 
 				//Check
 				if (!$recipients->validate()) {
-					MailerPlugin::log('UserGroup validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
+					MailerPlugin::log('UserGroups Mailer_RecipientsModel validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 					return false;
+				}
+				else {
+					MailerPlugin::log('UserGroups Mailer_RecipientsModel validation successful', LogLevel::Info);
 				}
 
 				//Create mailer
@@ -83,6 +95,9 @@ class Mailer_MainService extends BaseApplicationComponent
 		
 		//Users Mailer
 		if ($formData->sendto_users) {
+			//Log
+			MailerPlugin::log('Creating Users Mailer_RecipientsModel', LogLevel::Info);
+			
 			//Get Recipients
 			$user_recipients = $this->getUserRecipients($formData->users);
 
@@ -92,8 +107,11 @@ class Mailer_MainService extends BaseApplicationComponent
 
 			//Check
 			if (!$recipients->validate()) {
-				MailerPlugin::log('Users validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
+				MailerPlugin::log('Users Mailer_RecipientsModel validation errors: "'. implode('; ', $recipients->getErrors()) .'"', LogLevel::Error);
 				return false;
+			}
+			else {
+				MailerPlugin::log('Users Mailer_RecipientsModel validation successful', LogLevel::Info);
 			}
 
 			//Create mailer
@@ -121,12 +139,22 @@ class Mailer_MainService extends BaseApplicationComponent
 	{
 		//Description
 		$description = craft()->plugins->getPlugin('mailer')->getName().': '.$description;
+		
+		//Log
+		MailerPlugin::log('Create new MailerTask: '.$description, LogLevel::Info);
 
 		//StartTask
-		craft()->tasks->createTask('Mailer', $description, array(
+		$mailer_task = craft()->tasks->createTask('Mailer', $description, array(
 			'recipients' 	=> $recipients,
 			'email' 		=> $email
 		));
+		
+		if ($mailer_task->hasErrors()) {
+			MailerPlugin::log('Failed to create a MailerTask: "'. implode('; ', $mailer_task->getErrors()) .'"', LogLevel::Error);
+		}
+		else {
+			MailerPlugin::log('New MailerTask successfully created: "'.$description.'"', LogLevel::Info);
+		}
 
 
 		return true;
@@ -175,8 +203,10 @@ class Mailer_MainService extends BaseApplicationComponent
 		//Check
 		if (count($user_ids) == 0) {
 			MailerPlugin::log('getUserGroupRecipients(): No Users found in passed UserGroups. UserGroups IDs: "'. implode(', ', $usergroup_ids) .'"', LogLevel::Error);
-			
 			return false;
+		}
+		else {
+			MailerPlugin::log('getUserGroupRecipients(): Number of valid Users: '.count($user_ids), LogLevel::Info);
 		}
 
 
@@ -186,6 +216,7 @@ class Mailer_MainService extends BaseApplicationComponent
 
 			if (count($user_ids) == 0) {
 				//All users got excluded
+				MailerPlugin::log('getUserGroupRecipients(): All Users excluded', LogLevel::Info);
 				return null;
 			}
 		}
@@ -232,8 +263,10 @@ class Mailer_MainService extends BaseApplicationComponent
 		//Check
 		if (count($recipients) == 0) {
 			MailerPlugin::log('getUserRecipients(): No Users found with IDs: "'. implode(', ', $user_ids) .'"', LogLevel::Error);
-			
 			return false;
+		}
+		else {
+			MailerPlugin::log('getUserRecipients(): Number of valid Recipients: '.count($recipients), LogLevel::Info);
 		}
 
 
