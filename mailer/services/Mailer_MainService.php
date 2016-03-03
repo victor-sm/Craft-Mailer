@@ -175,6 +175,7 @@ class Mailer_MainService extends BaseApplicationComponent
 		//Get all users from specified usergroups
 		$criteria 			= craft()->elements->getCriteria(ElementType::User);
 		$criteria->groupId 	= $usergroup_ids;
+		$criteria->limit = null;
 		$users 				= $criteria->find();
 
 
@@ -247,6 +248,7 @@ class Mailer_MainService extends BaseApplicationComponent
 		//Get all Users by ids
  		$criteria 		= craft()->elements->getCriteria(ElementType::User);
 		$criteria->id 	= $user_ids;
+		$criteria->limit = null;
 		$users 			= $criteria->find();
 		
 
@@ -291,6 +293,7 @@ class Mailer_MainService extends BaseApplicationComponent
 			//Criteria
 			$criteria 			= craft()->elements->getCriteria(ElementType::User);
 			$criteria->groupId 	= $exportData->usergroups;
+			$criteria->limit = null;
 			$users 				= $criteria->find();
 
 			//Get ids of those users
@@ -312,6 +315,7 @@ class Mailer_MainService extends BaseApplicationComponent
 		//Get UserData
 		$criteria 			= craft()->elements->getCriteria(ElementType::User);
 		$criteria->id 		= $user_ids;
+		$criteria->limit = null;
 		$users 				= $criteria->find();
 
 		//CSV-Data
